@@ -102,11 +102,17 @@ Cautions:
 7. With a second display connected, verify projector selection/fullscreen behavior.
 8. Create or edit a song, restart, and verify it loads without data loss.
 
-Keyboard behavior in `SongsPanel`:
+Keyboard behavior:
 
-- `1` through `9` select and send the corresponding verse;
-- `0` clears the verse selection and sends a blank lyrics screen;
+- `F5` sends the complete prepared screen live;
+- `Shift+F5` copies the live screen back to the prepared screen;
+- `Ctrl+F` focuses the song search field;
+- `Ctrl+S` saves general settings and picture bookmark/history state;
+- `1` through `9` in the song panel select and send the corresponding verse;
+- `0` in the song panel clears the verse selection and sends blank lyrics;
 - Up/Down in the search field changes the selected song.
+
+Song changes are saved from `SongEditor`; general settings and picture state are saved by `Ctrl+S` and again when the application window closes, rather than continuously.
 
 ## Debugging boundaries
 
