@@ -14,6 +14,12 @@ The Maven Wrapper downloads the pinned Maven version, so a separate Maven instal
 ./mvnw verify
 ```
 
+On Windows Command Prompt or PowerShell, use:
+
+```powershell
+.\mvnw.cmd verify
+```
+
 This is the command used by continuous integration. It compiles the Java 21 source, runs the characterization tests, and creates `target/worship-1.0-SNAPSHOT.jar`.
 
 ## Run from the build tree
@@ -25,6 +31,8 @@ Prepare runtime dependencies:
   -DincludeScope=runtime \
   -DoutputDirectory=target/dependency
 ```
+
+On Windows, invoke the same goal with `.\mvnw.cmd`.
 
 Then start the operator application:
 
