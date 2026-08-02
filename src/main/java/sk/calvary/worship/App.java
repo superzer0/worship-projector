@@ -12,6 +12,9 @@ import sk.calvary.misc.ui.ObjectListModel;
 import sk.calvary.worship.panels.BackPicPanel;
 import sk.calvary.worship.panels.SettingsPanel;
 import sk.calvary.worship.panels.SongsPanel;
+import sk.calvary.worship.ui.OperatorPreviewPanel;
+import sk.calvary.worship.ui.UiTheme;
+import sk.calvary.worship.ui.WindowSizing;
 
 import javax.swing.*;
 import java.awt.*;
@@ -54,6 +57,8 @@ public class App extends JFrame implements ActionListener {
     public final Action actionSongSearch;
     public final Action actionSaveAll;
     public final int SETTING_LANGUAGE = 1;
+    public final int SETTING_THEME = 2;
+    private UiTheme currentTheme = UiTheme.LIGHT;
     final Vector<AppPanel> panels = new Vector<AppPanel>(); // @jve:decl-index=0:
     final Set<AppPanel> panelsSelected = new HashSet<AppPanel>(); // @jve:decl-index=0:
     final Screen screenPrepared = new Screen(this);
@@ -84,7 +89,6 @@ public class App extends JFrame implements ActionListener {
     private JPanel jContentPane = null;
     private JPanel jPanel = null;
     private JPanel jPanel1 = null;
-    private JPanel jPanel2 = null;
     private JSplitPane jSplitPane = null;
     private ScreenViewSwing screenViewLive = null;
     private ScreenViewSwing screenViewPrepared = null;
@@ -97,6 +101,7 @@ public class App extends JFrame implements ActionListener {
     private JMenu jMenuAkcie = null;
     private SongsPanel songsPanel;
     private JMenu jMenuFile = null;
+    private JMenu jMenuAppearance = null;
     private PanelSelector panelSelector = null;
 
     /**
@@ -108,6 +113,11 @@ public class App extends JFrame implements ActionListener {
         checkDirs();
 
         loadSettings();
+        String requestedTheme = System.getProperty(
+                "jworship.theme", generalSettings.get(SETTING_THEME));
+        currentTheme = UiTheme.fromSetting(requestedTheme);
+        if (!UiTheme.installWithFallback(currentTheme))
+            currentTheme = null;
         loadLangs();
 
         actionGo = new MyAction(ls(1000), null, KeyStroke.getKeyStroke("F5")) {
@@ -195,12 +205,7 @@ public class App extends JFrame implements ActionListener {
         SwingUtilities.invokeAndWait(new Runnable() {
             @Override
             public void run() {
-                try {
-                    UIManager.setLookAndFeel(UIManager
-                            .getSystemLookAndFeelClassName());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                UiTheme.installWithFallback(UiTheme.LIGHT);
                 App app = new App();
                 app.setVisible(true);
                 if (testMode)
@@ -226,8 +231,59 @@ public class App extends JFrame implements ActionListener {
             jJMenuBar.add(getJMenuFile());
             jJMenuBar.add(getJMenuScreens());
             jJMenuBar.add(getJMenuActions());
+            jJMenuBar.add(getJMenuAppearance());
         }
         return jJMenuBar;
+    }
+
+    private JMenu getJMenuAppearance() {
+        if (jMenuAppearance == null) {
+            jMenuAppearance = new JMenu(lsOrDefault(1055, "Appearance"));
+            JMenu themeMenu = new JMenu(lsOrDefault(1056, "Theme"));
+            ButtonGroup group = new ButtonGroup();
+            for (UiTheme theme : UiTheme.values()) {
+                String label = theme == UiTheme.DARK
+                        ? lsOrDefault(1058, theme.getDisplayName())
+                        : lsOrDefault(1057, theme.getDisplayName());
+                JRadioButtonMenuItem item = new JRadioButtonMenuItem(label);
+                item.setSelected(theme == currentTheme);
+                item.putClientProperty("jWorship.theme", theme);
+                item.addActionListener(event -> {
+                    setCurrentTheme(theme);
+                    syncThemeSelection(group);
+                });
+                group.add(item);
+                themeMenu.add(item);
+            }
+            jMenuAppearance.add(themeMenu);
+        }
+        return jMenuAppearance;
+    }
+
+    private void setCurrentTheme(UiTheme theme) {
+        if (theme == null || theme == currentTheme)
+            return;
+        UiTheme previousTheme = currentTheme;
+        if (!UiTheme.installAndRefresh(theme)) {
+            if (previousTheme != null)
+                UiTheme.installAndRefresh(previousTheme);
+            return;
+        }
+        currentTheme = theme;
+        generalSettings.put(SETTING_THEME, theme.getSettingValue());
+        saveAll();
+    }
+
+    private void syncThemeSelection(ButtonGroup group) {
+        group.clearSelection();
+        java.util.Enumeration<AbstractButton> buttons = group.getElements();
+        while (buttons.hasMoreElements()) {
+            AbstractButton button = buttons.nextElement();
+            if (button.getClientProperty("jWorship.theme") == currentTheme) {
+                button.setSelected(true);
+                return;
+            }
+        }
     }
 
     /**
@@ -433,6 +489,11 @@ public class App extends JFrame implements ActionListener {
         return langObj.getString("#" + key, language);
     }
 
+    String lsOrDefault(int key, String fallback) {
+        String value = ls(key);
+        return value.equals("#" + key) ? fallback : value;
+    }
+
     public String[] getLanguagesAvailable() {
         return langObj.getLangs();
     }
@@ -495,13 +556,8 @@ public class App extends JFrame implements ActionListener {
      */
     private JButton getJButton() {
         if (jButton == null) {
-            jButton = new JButton();
-            jButton.setText(ls(1000));
-            jButton.addActionListener(new java.awt.event.ActionListener() {
-                public void actionPerformed(java.awt.event.ActionEvent e) {
-                    go(Screen.ALL);
-                }
-            });
+            jButton = new JButton(actionGo);
+            jButton.setText(lsOrDefault(1062, ls(1000)));
         }
         return jButton;
     }
@@ -528,32 +584,13 @@ public class App extends JFrame implements ActionListener {
      */
     private JPanel getJPanel() {
         if (jPanel == null) {
-            GridBagConstraints gridBagConstraints3 = new GridBagConstraints();
-            GridBagConstraints gridBagConstraints2 = new GridBagConstraints();
-            GridBagConstraints gridBagConstraints1 = new GridBagConstraints();
-            jPanel = new JPanel();
-            jPanel.setLayout(new GridBagLayout());
-            gridBagConstraints1.gridx = 0;
-            gridBagConstraints1.insets = new Insets(4, 4, 4, 4);
-            gridBagConstraints1.gridy = 0;
-            gridBagConstraints1.ipadx = 298;
-            gridBagConstraints1.ipady = 124;
-            gridBagConstraints1.fill = java.awt.GridBagConstraints.BOTH;
-            gridBagConstraints1.weighty = 1.0D;
-            gridBagConstraints2.gridx = 0;
-            gridBagConstraints2.insets = new Insets(4, 4, 4, 4);
-            gridBagConstraints2.gridy = 2;
-            gridBagConstraints2.ipadx = 298;
-            gridBagConstraints2.ipady = 124;
-            gridBagConstraints2.fill = java.awt.GridBagConstraints.BOTH;
-            gridBagConstraints2.weighty = 1.0D;
-            gridBagConstraints3.gridx = 0;
-            gridBagConstraints3.gridy = 1;
-            gridBagConstraints3.fill = java.awt.GridBagConstraints.BOTH;
-            gridBagConstraints3.weightx = 1.0D;
-            jPanel.add(getScreenViewPrepared(), gridBagConstraints1);
-            jPanel.add(getScreenViewLive(), gridBagConstraints2);
-            jPanel.add(getJPanel2(), gridBagConstraints3);
+            jPanel = new OperatorPreviewPanel(
+                    getScreenViewPrepared(),
+                    getScreenViewLive(),
+                    getJButton(),
+                    lsOrDefault(1060, "PREPARED"),
+                    lsOrDefault(1061, "LIVE")
+            );
         }
         return jPanel;
     }
@@ -567,26 +604,12 @@ public class App extends JFrame implements ActionListener {
         if (jPanel1 == null) {
             jPanel1 = new JPanel();
             jPanel1.setLayout(new BorderLayout());
-            jPanel1.setMinimumSize(new java.awt.Dimension(100, 10));
+            jPanel1.setMinimumSize(new Dimension(260, 360));
             jPanel1.add(getJPanel(), java.awt.BorderLayout.CENTER);
         }
         return jPanel1;
     }
 
-    /**
-     * This method initializes jPanel2
-     *
-     * @return javax.swing.JPanel
-     */
-    private JPanel getJPanel2() {
-        if (jPanel2 == null) {
-            jPanel2 = new JPanel();
-            jPanel2.setLayout(new FlowLayout());
-            jPanel2.add(getJButton(), null);
-            jPanel2.setBackground(jPanel2.getBackground().darker().darker());
-        }
-        return jPanel2;
-    }
 
     /**
      * This method initializes jSplitPane
@@ -596,10 +619,12 @@ public class App extends JFrame implements ActionListener {
     private JSplitPane getJSplitPane() {
         if (jSplitPane == null) {
             jSplitPane = new JSplitPane();
-            jSplitPane.setResizeWeight(0.5D);
+            jSplitPane.setResizeWeight(0.68D);
+            jSplitPane.setContinuousLayout(true);
+            jSplitPane.setOneTouchExpandable(true);
             jSplitPane.setRightComponent(getJPanel1());
             jSplitPane.setLeftComponent(getPanelSelector());
-            jSplitPane.setDividerLocation(600);
+            jSplitPane.setDividerLocation(0.68D);
         }
         return jSplitPane;
     }
@@ -703,7 +728,13 @@ public class App extends JFrame implements ActionListener {
         this.setContentPane(getJContentPane());
         this.setJMenuBar(getJJMenuBar());
         this.setTitle("jWorship " + version);
-        this.setSize(700, 500);
+        Rectangle usableBounds = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+        this.setMinimumSize(WindowSizing.minimumSize(usableBounds));
+        this.setSize(WindowSizing.initialSize(usableBounds));
+        this.setLocation(
+                usableBounds.x + Math.max(0, (usableBounds.width - getWidth()) / 2),
+                usableBounds.y + Math.max(0, (usableBounds.height - getHeight()) / 2)
+        );
         setExtendedState(Frame.MAXIMIZED_BOTH);
 
         this.addWindowListener(new java.awt.event.WindowAdapter() {
@@ -767,6 +798,7 @@ public class App extends JFrame implements ActionListener {
 
     private void loadDefaultGeneralSettings() {
         generalSettings.put(SETTING_LANGUAGE, "en");
+        generalSettings.put(SETTING_THEME, UiTheme.LIGHT.getSettingValue());
     }
 
     void initializeFullScreen(int screen) {

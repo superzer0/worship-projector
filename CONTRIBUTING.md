@@ -2,11 +2,11 @@
 
 ## Development branch
 
-Use `dev` as the base branch for development work and target pull requests to `dev`.
+Use `master` as the base branch for development work and target pull requests to `master`.
 
 ```bash
-git clone --branch dev https://github.com/superzer0/jWorship.git
-cd jWorship
+git clone --branch master https://github.com/superzer0/worship-projector.git
+cd worship-projector
 git switch -c <type>/<short-description>
 ```
 
@@ -14,7 +14,7 @@ Suggested branch prefixes are `docs/`, `fix/`, `test/`, `refactor/`, and `featur
 
 ## Before changing behavior
 
-jWorship currently has no automated test suite and its build is not reproducible with a current toolchain. Until the foundation milestones in the [modernization plan](docs/modernization-plan.md) are complete:
+jWorship has a Java 21 build, characterization tests, and application startup checks. For every behavior change:
 
 1. keep changes small and focused;
 2. document the behavior being preserved;

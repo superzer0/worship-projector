@@ -12,7 +12,7 @@ import java.awt.*;
 public class FormatButton extends JToggleButton {
     private static final long serialVersionUID = 8159562839448552818L;
 
-    private static final Dimension DIMENSION = new Dimension(22, 22);
+    private static final Dimension DIMENSION = new Dimension(30, 30);
 
     public FormatButton() {
         super();
@@ -23,8 +23,10 @@ public class FormatButton extends JToggleButton {
 
     public Color getBackground() {
         Color c = super.getBackground();
-        if (c != null && isSelected())
-            return /* c.darker().darker().darker() */Color.green;
+        if (c != null && isSelected()) {
+            Color accent = UIManager.getColor("jWorship.preparedAccent");
+            return accent == null ? c.darker() : accent;
+        }
         return c;
     }
 

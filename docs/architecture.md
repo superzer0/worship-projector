@@ -117,6 +117,6 @@ Settings and bookmarks are serialized separately under the user settings directo
 3. **Unclear dependency scope:** disabled multimedia source is compiled with the lyrics application.
 4. **Mutable shared state:** `Vector`, direct object references, and property-name strings coordinate UI state.
 5. **Platform assumptions:** fullscreen, paths, font name, and charset behavior vary by operating system.
-6. **No regression safety net:** rendering, parsing, search, and storage behavior have no automated tests.
+6. **Limited regression safety net:** initial parsing and UI-foundation tests exist, but rendering, search, storage, and projector behavior still need characterization coverage.
 
 The goal is not a big-bang rewrite. Preserve the prepared/live operating model and move testable behavior behind explicit interfaces one slice at a time.
