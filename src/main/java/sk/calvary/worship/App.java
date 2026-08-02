@@ -201,7 +201,10 @@ public class App extends JFrame implements ActionListener {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                new App().setVisible(true);
+                App app = new App();
+                app.setVisible(true);
+                if (testMode)
+                    System.out.println("JWORSHIP_UI_READY");
 
             }
         });

@@ -44,4 +44,4 @@ Install `xvfb` and the X11 client libraries required by Java AWT (`libxi6`, `lib
 ./scripts/smoke-test.sh
 ```
 
-The script creates a temporary user-data directory and verifies that the Swing operator UI stays alive for 15 seconds on a virtual display. It does not validate real projector selection, multi-display behavior, media playback, or live operator workflows.
+The script creates a temporary user-data directory and verifies that the Swing operator window becomes visible and remains alive for 15 seconds on a virtual display. It does not validate real projector selection, multi-display behavior, media playback, or live operator workflows.
