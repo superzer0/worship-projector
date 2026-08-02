@@ -29,15 +29,28 @@ Legacy multimedia, capture, video effects, and network song synchronization are 
 | Concern | Current implementation | Modernization implication |
 | --- | --- | --- |
 | UI | Java Swing with generated/hand-written layouts | Keep initially; decouple behavior from widgets |
-| Runtime | Java 6 source/target in Maven | Move through a compiling compatibility baseline to a current LTS JDK |
+| Runtime | Java 6 source/target in Maven; a controlled probe compiled and smoke-launched on JDK 21 | Adopt Java 21 directly as the recovery baseline, then validate on real supported desktops |
 | Build | One old `pom.xml`, no wrapper or CI | Pin Maven/JDK and add CI first |
 | Core rendering | Java2D in `Screen`/`ScreenViewSwing` | Retain and characterize before visual changes |
 | Songs | `.txt` import plus Java-serialized `.sng` writes | Add a versioned UTF-8 format and safe migration |
 | Settings | Java serialization and editable language file | Introduce explicit schema/defaults later |
-| Dependencies | obsolete JMF, JOGL 1, DSJ, JGit, AppBundler | Separate or remove from default lyrics build |
+| Dependencies | obsolete JMF, JOGL 1, DSJ, JGit, AppBundler | Remove the inactive DSJ/DirectShow cluster first; separate other out-of-scope dependencies incrementally |
 | Tests | none | Add a headless characterization suite |
-| Packaging | executable JAR plus old macOS bundle plugin | Replace after the core build is green |
+| Packaging | executable JAR plus old macOS bundle plugin; AppBundler fails on JDK 17/21 after JAR creation | Decouple packaging from compile/test and replace AppBundler separately |
 | License/governance | no root license or contribution policy | Confirm ownership and choose a license before redistribution |
+
+## Verified recovery evidence
+
+Docker probes against the unchanged `dev` commit and disposable diagnostic copies narrowed the immediate build problem:
+
+- unchanged source fails before compilation on the unresolved DSJ 0.8.64 dependency;
+- removing only the dependency is insufficient because inactive multimedia sources reference DSJ types;
+- excluding that DSJ/DirectShow source cluster allows the remaining project to package on JDK 8;
+- the same reduced source set compiles on JDK 21 with source/target 17;
+- the operator application remains alive in a 15-second Xvfb smoke launch on JDK 21;
+- modern-JDK packaging then fails independently in AppBundler 1.0.4.
+
+See [Build investigation](build-investigation.md) for the exact matrix and limitations. This evidence favors a direct Java 21 baseline and two independent changes: build recovery first, packaging replacement later.
 
 ## Phase 0 — recover a reproducible build
 
@@ -46,19 +59,20 @@ Legacy multimedia, capture, video effects, and network song synchronization are 
 Work:
 
 1. Confirm project ownership, intended open-source license, and redistribution rights for copied/third-party source and resources.
-2. Decide the supported desktop platforms and select a current LTS Java target (prefer Java 21 if desktop validation succeeds).
+2. Decide the supported desktop platforms and adopt Java 21 as the initial supported baseline; keep real desktop and projector validation as an exit criterion.
 3. Add Maven Wrapper and pin plugin versions.
-4. Create a lyrics-only default source set/module that does not compile JMF, JOGL 1, DSJ, or effects code.
-5. Remove obsolete HTTP repositories and dependencies from the default path.
-6. Fix source-level blockers such as the malformed identifier in `songrepo/GitHelper.java`, or exclude the incomplete helper pending a requirement.
-7. Add CI for compile and tests on the chosen JDK; add a separate packaging job only after compilation is stable.
-8. Document one supported local build/run command.
+4. Remove or exclude the inactive DSJ/DirectShow source cluster and its dependency as one coherent change.
+5. Remove obsolete repositories not required by the remaining build; inventory JMF/JOGL/effects separately instead of coupling all multimedia removal to the first green build.
+6. Exclude the incomplete `songrepo/GitHelper` and old JGit dependency unless song synchronization becomes a current requirement.
+7. Remove AppBundler from the normal lifecycle so compile/test can be green independently of installer work.
+8. Add CI for compile and tests on Java 21; add a separate packaging job only after compilation is stable.
+9. Document one supported local build/run command.
 
 Exit criteria:
 
 - `./mvnw verify` succeeds from a clean checkout;
 - CI runs the same command on every pull request to `dev`;
-- the application launches into the operator UI on each supported OS;
+- an automated smoke check launches the operator UI, followed by a manual launch/projector check on each supported OS;
 - no unverified binary is introduced to make the build green.
 
 ## Phase 1 — establish regression safety
@@ -174,15 +188,17 @@ Each optional feature needs a user story, privacy/security assessment, offline b
 ## Suggested pull-request sequence
 
 1. Build inventory, license decision, and supported-platform decision.
-2. Lyrics-only compiling module/source set plus Maven Wrapper.
-3. CI with an empty test harness and smoke launch check.
-4. `Song` text parser and search characterization tests.
-5. Prepared/live controller characterization tests.
-6. `SongRepository` interface with current storage adapter.
-7. Versioned UTF-8 song format and migration tool.
-8. `PresentationController` extraction.
-9. Current-JDK packaging and installers.
-10. Small, tested operator UX improvements.
+2. Remove the inactive DSJ/DirectShow cluster and its dependency/repository.
+3. Adopt Java 21, add Maven Wrapper and CI, and detach AppBundler from the normal lifecycle.
+4. Add the test harness, one song-parser characterization test, and a smoke-launch check.
+5. Inventory and remove/isolate remaining out-of-scope multimedia and song-sync dependencies.
+6. Expand `Song` text parser and search characterization tests.
+7. Add prepared/live controller characterization tests.
+8. Introduce `SongRepository` with the current storage adapter.
+9. Add a versioned UTF-8 song format and migration tool.
+10. Extract `PresentationController`.
+11. Add current-JDK packaging and installers.
+12. Deliver small, tested operator UX improvements.
 
 ## Decisions required before implementation
 

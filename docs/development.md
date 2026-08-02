@@ -39,9 +39,11 @@ If the manifest/classpath assembly fails, the historical fallback was:
 java -cp target/worship-1.0-SNAPSHOT.jar sk.calvary.worship.App
 ```
 
-These commands currently fail before compilation because the old dependencies are no longer reliably resolvable. A clean verification run with Temurin JDK 8 and Maven 3.9.9 reached dependency resolution, then failed while resolving `de.humatic.dsj:dsj:0.8.64` through the retired `maven.java.net` repository (`PKIX path building failed`). This confirms that using an older JDK alone does not provide a reproducible build.
+These commands currently fail before compilation because the old dependencies are no longer reliably resolvable. A clean Docker verification with Maven 3.9.16 and Temurin JDK 8 failed while resolving `de.humatic.dsj:dsj:0.8.64` through the legacy `maven.java.net` repository (`PKIX` certificate validation failure). The same unresolved dependency blocks an unchanged build on JDK 17. Using an older or newer JDK alone therefore does not provide a reproducible build.
 
 Do not solve that by downloading unverified JAR files. Inventory, license-check, hash, and document any binary that must temporarily be preserved.
+
+See [Build investigation](build-investigation.md) for the full Docker verification matrix. It demonstrates that excluding the inactive DSJ/DirectShow source cluster allows the remaining code to compile on Java 21; packaging then fails independently in the obsolete AppBundler plugin.
 
 ## Runtime data
 
@@ -128,11 +130,11 @@ Rendering changes require both a normal preview check and a real multi-display c
 
 | Area | Evidence in `dev` | Effect |
 | --- | --- | --- |
-| Java level | `pom.xml` uses source/target `1.6` | Current JDKs no longer accept the configured release directly |
-| Dependency resolution | JMF, JOGL 1, DSJ, old JGit and HTTP repositories | A clean Maven build is not reproducible |
-| Packaging | Maven Jar Plugin 2.4 and AppBundler 1.0.4 | Packaging is tied to obsolete plugin behavior |
+| Java level | `pom.xml` uses source/target `1.6`; a controlled source/target 17 probe compiled on JDK 21 | Current JDKs reject the configured Java 6 target, but a direct move to Java 21 is plausible |
+| Dependency resolution | DSJ 0.8.64 is fetched through legacy `maven.java.net`; removing only the dependency exposes DSJ references in inactive multimedia source | A clean build fails until the DSJ/DirectShow source cluster and dependency are removed or isolated together |
+| Packaging | AppBundler 1.0.4 succeeds in the reduced JDK 8 probe but fails with an API incompatibility on JDK 17/21 after JAR creation | Compile/test recovery and packaging replacement should be separate changes |
 | Tests | no `src/test` tree | Changes cannot be regression-checked automatically |
-| Song repository helper | `songrepo/GitHelper.java` contains a malformed identifier and hard-coded paths/URL | Source compilation or helper execution may fail |
+| Song repository helper | `songrepo/GitHelper.java` is a standalone experiment with hard-coded paths and repository URL | It is outside the main flow and keeps old JGit in the dependency graph without a current product requirement |
 | Persistence | Java serialization and platform-default text encoding | Compatibility and security risk |
 
 Keep this table synchronized with verified build results as milestones are completed.

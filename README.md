@@ -23,6 +23,7 @@ The repository also contains experimental or legacy image, video, JMF, JOGL, and
 ## Documentation
 
 - [Development guide](docs/development.md) — repository setup, data formats, local files, and current build limitations
+- [Build investigation](docs/build-investigation.md) — Docker-verified blockers and the narrowest recovery path
 - [Architecture](docs/architecture.md) — runtime flow, major components, and design boundaries
 - [Modernization plan](docs/modernization-plan.md) — phased, test-first route to a maintainable application
 - [Contributing](CONTRIBUTING.md) — branch, change, and pull-request conventions
