@@ -1,0 +1,9 @@
+#JetBrains IntelliJ specific
+.idea/
+*.iml
+out/
+target/
+dist/
+
+#OSX specific
+.DS_Store

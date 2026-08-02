@@ -1,0 +1,277 @@
+//sk.calvary.worship Language
+
+#1000
+en [Go!]
+sk [Na projektor!]
+pl [Wyświetl!]
+
+#1001
+en [Reverse Go!]
+sk [Z projektora na obrazovku]
+pl [Z rzutnika na ekran]
+
+#1002
+en [Go text]
+sk [Posla� text]
+pl [Odśwież tekst]
+
+#1003
+en [Go background]
+sk [Poslat pozadie]
+pl [Odśwież tło]
+
+#1004
+en [Search song]
+sk [H�adaj piese�]
+pl [Szukaj utworu]
+
+#1005
+en [Save all]
+sk [Ulo�i� v�etko]
+pl [Zapisz wszystko]
+
+#1006
+en [Screens]
+sk [Obrazovky]
+pl [Ekrany]
+
+#1007
+en [Projector]
+sk [Projektor]
+pl [Rzutnik]
+
+#1008
+en [This screen]
+sk [T�to obrazovka]
+pl [Ten ekran]
+
+#1009
+en [Test screen]
+sk [Sk��obn� obrazovka]
+pl [Ekran testowy]
+
+#1010
+en [Cancel all]
+sk [Zru�i� v�etky]
+pl [Wyłącz ekrany]
+
+#1011
+en [Actions]
+sk [Akcie]
+pl [Akcje]
+
+#1012
+en [File]
+sk [S�bor]
+pl [Plik]
+
+#1013
+en [Please connect your computer to a projector first!]
+sk [Najprv nastav pripojenie po��ta�a k projektoru!]
+pl [Proszę podłączyć komputer do rzutnika!]
+
+#1014
+en [Settings]
+sk [Nastavenia]
+pl [Ustawienia]
+
+#1015
+en [Text]
+sk [Text]
+pl [Tekst]
+
+#1016
+en [font size]
+sk [ve�kos� fontu]
+pl [rozmiar czcionki]
+
+#1017
+en [wrap text]
+sk [zalamova� text]
+pl [zawijanie tekstu]
+
+#1018
+en [decrease text size]
+sk [zmen�i� text]
+pl [zmniejsz rozmiar tekstu]
+
+#1019
+en [Application]
+sk [Aplik�cia]
+pl [Aplikacja]
+
+#1020
+en [immediately to screen]
+sk [hne� na cel� obrazovku]
+pl [od razu na ekran]
+
+#1021
+en [Background]
+sk [Pozadie]
+pl [Tło]
+
+#1022
+en [the background fully fills the screen]
+sk [pozadie vyp��a cel� obrazovku]
+pl [tło wypełnia cały ekran]
+
+#1023
+en [shadow]
+sk [tie�]
+pl [cień]
+
+#1024
+en [alignment]
+sk [zarovnanie]
+pl [wyrównianie]
+
+#1025
+en [aspect ratio]
+sk [pomer str�n]
+pl [proporcje ekranu]
+
+#1026
+en [Transition]
+sk [Prechod]
+pl [Przejście]
+
+#1027
+en [Advanced]
+sk [Roz��ren�]
+pl [Zaawansowane]
+
+#1028
+en [Author]
+sk [Autor]
+pl [Autor]
+
+#1029
+en [Title 2]
+sk [N�zov 2]
+pl [Tytuł 2]
+
+#1030
+en [Title]
+sk [N�zov]
+pl [Tytuł]
+
+#1031
+en [Song]
+sk [Piese�]
+pl [Utwór]
+
+#1032
+en [Do You really want to save the song?]
+sk [Naozaj ulo�i� piese�?]
+pl [Czy na pewno zapisać utwór?]
+
+#1033
+en [Cancel]
+sk [Zru�i�]
+pl [Anuluj]
+
+#1034
+en [Do You want to enlarge the letters in the title?]
+sk [Zv��i� p�smenk� v n�zve?]
+pl [Powiększyć litery w tytule?]
+
+#1035
+en [Do You want to enlarge the letters in the text?]
+sk [Zv��i� p�smenk� v texte?]
+pl [Powiększyć litery w tekście?]
+
+#1036
+en [fullscreen]
+sk [fullscreen]
+pl [ekran]
+
+#1037
+en [Delete]
+sk [Zmaza�]
+pl [Usuń]
+
+#1038
+en [Add bookmark]
+sk [Prida� z�lo�ku]
+pl [Dodaj zakładkę]
+
+#1039
+en [Add to history]
+sk [Prida� do hist�rie]
+pl [Dodaj do historii]
+
+#1040
+en [Delete bookmarks]
+sk [Vymaza� z�lo�ky]
+pl [Usuń zakładki]
+
+#1041
+en [Are You sure?]
+sk [Naozaj?]
+pl [Czy na pewno?]
+
+#1042
+en [Rename bookmarks]
+sk [Premenova� z�lo�ky]
+pl [Zmieniń nazwę zakładki]
+
+#1043
+en [Set default bookmarks]
+sk [Predvoli� z�lo�ky]
+pl [Ustaw domyślne zakładki]
+
+#1044
+en [New bookmarks]
+sk [Nov� z�lo�ky]
+pl [Nowe zakładki]
+
+#1045
+en [Do You really want to delete it?]
+sk [Naozaj vymaza�?]
+pl [Czy na pewno usunąć?]
+
+#1046
+en [Empty backgound]
+sk [Pr�zdne pozadie]
+pl [Puste tło]
+
+#1047
+en [All]
+sk [V�etko]
+pl [Wszystko]
+
+#1048
+en [Bookmarks]
+sk [Z�lo�ky]
+pl [Zakładki]
+
+#1049
+en [History]
+sk [Hist�ria]
+pl [Historia]
+
+#1050
+en [default]
+sk [predvolen�]
+pl [domyślne]
+
+#1051
+en [Songs]
+sk [Piesne]
+pl [Utwory]
+
+#1052
+en [Empty text]
+sk [Pr�zdny text]
+pl [Pusty tekst]
+
+#1053
+en [Edit]
+sk [Edituj]
+pl [Edytuj]
+
+#1054
+en [New]
+sk [Nov�]
+pl [Nowa]
+
