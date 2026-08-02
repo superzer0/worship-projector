@@ -50,4 +50,15 @@ class UiThemeTest {
         assertEquals(new Color(0xB91C1C),
                 UIManager.getColor("jWorship.liveActionBackground"));
     }
+
+    @Test
+    void fallsBackToTheSystemLookAndFeelWhenFlatLafCannotBeInstalled() {
+        boolean installed = UiTheme.installWithFallback(UiTheme.DARK, () -> {
+            throw new IllegalStateException("simulated FlatLaf failure");
+        });
+
+        assertFalse(installed);
+        assertEquals(UIManager.getSystemLookAndFeelClassName(),
+                UIManager.getLookAndFeel().getClass().getName());
+    }
 }

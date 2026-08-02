@@ -115,7 +115,7 @@ public class App extends JFrame implements ActionListener {
         String requestedTheme = System.getProperty(
                 "jworship.theme", generalSettings.get(SETTING_THEME));
         currentTheme = UiTheme.fromSetting(requestedTheme);
-        UiTheme.install(currentTheme);
+        UiTheme.installWithFallback(currentTheme);
         loadLangs();
 
         actionGo = new MyAction(ls(1000), null, KeyStroke.getKeyStroke("F5")) {
@@ -203,7 +203,7 @@ public class App extends JFrame implements ActionListener {
         SwingUtilities.invokeAndWait(new Runnable() {
             @Override
             public void run() {
-                UiTheme.install(UiTheme.LIGHT);
+                UiTheme.installWithFallback(UiTheme.LIGHT);
                 App app = new App();
                 app.setVisible(true);
                 if (testMode)

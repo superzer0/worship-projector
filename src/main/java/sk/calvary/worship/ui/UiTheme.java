@@ -42,6 +42,31 @@ public enum UiTheme {
         if (!FlatLaf.setup(lookAndFeel))
             throw new IllegalStateException("Unable to install the " + selected.displayName + " theme");
 
+        applyDefaults(selected);
+    }
+
+    public static boolean installWithFallback(UiTheme theme) {
+        return installWithFallback(theme, () -> install(theme));
+    }
+
+    static boolean installWithFallback(UiTheme theme, Runnable themeInstaller) {
+        UiTheme selected = theme == null ? LIGHT : theme;
+        try {
+            themeInstaller.run();
+            return true;
+        } catch (RuntimeException primaryFailure) {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                applyDefaults(selected);
+                return false;
+            } catch (Exception fallbackFailure) {
+                fallbackFailure.addSuppressed(primaryFailure);
+                throw new IllegalStateException("Unable to install a Swing look and feel", fallbackFailure);
+            }
+        }
+    }
+
+    private static void applyDefaults(UiTheme selected) {
         UIManager.put("Button.arc", 10);
         UIManager.put("Component.arc", 8);
         UIManager.put("Component.focusWidth", 2);
@@ -59,7 +84,7 @@ public enum UiTheme {
     }
 
     public static void installAndRefresh(UiTheme theme) {
-        install(theme);
+        installWithFallback(theme);
         for (Window window : Window.getWindows())
             SwingUtilities.updateComponentTreeUI(window);
     }
