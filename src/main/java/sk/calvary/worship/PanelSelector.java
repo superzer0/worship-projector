@@ -28,6 +28,8 @@ public class PanelSelector extends JPanel {
     public PanelSelector(App app) {
         this.app = app;
         setLayout(new BorderLayout());
+        tabs.putClientProperty("JTabbedPane.tabType", "underlined");
+        tabs.putClientProperty("JTabbedPane.tabAreaAlignment", "leading");
         add(tabs, BorderLayout.CENTER);
     }
 
@@ -49,11 +51,13 @@ public class PanelSelector extends JPanel {
             } else {
                 p = new JPanel();
                 p.setLayout(new GridLayout(0, 1, 0, 4));
-                p.setBackground(getBackground().darker().darker());
                 for (int j = 0; j < lt[i].length; j++)
                     p.add(new TabPanelSwitcher(p, lt[i][j]));
             }
-            tabs.addTab(sb.toString(), p);
+            String title = lt[i].length > 1
+                    ? app.lsOrDefault(1063, "Present")
+                    : sb.toString();
+            tabs.addTab(title, p);
         }
     }
 

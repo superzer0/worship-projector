@@ -3,7 +3,7 @@
 jWorship is a Java Swing desktop application for presenting song lyrics during worship meetings. An operator can search the song library, select a song and one or more verses, preview the result, and send it to a projector or second display.
 
 > [!IMPORTANT]
-> The `dev` branch is the development baseline. It is historical Java 6-era code and is not yet reproducibly buildable on a current developer workstation. See [Development](docs/development.md) for the observed baseline and [Modernization plan](docs/modernization-plan.md) for the recovery path.
+> `master` is the development baseline. The application builds on Java 21, is verified in CI, and is distributed as self-contained desktop archives. See [Building](BUILDING.md) for supported commands.
 
 ## What the application does
 
@@ -46,16 +46,23 @@ The repository also contains experimental or legacy image, video, JMF, JOGL, and
 └── docs/                            Contributor documentation
 ```
 
-## Historical build command
+## Build and run
 
-The original build instructions were:
+Compile and test with the checksum-verified Maven Wrapper:
 
 ```bash
-mvn install
-java -jar target/worship-1.0-SNAPSHOT.jar
+./mvnw verify
 ```
 
-Do not treat that command as a supported modern build yet. The current Maven model targets Java 6 and references obsolete dependencies and repositories. Re-establishing a reproducible build is the first modernization milestone.
+See [Building](BUILDING.md) for local launch instructions and self-contained release packaging.
+
+## Operator interface
+
+The Swing operator interface uses FlatLaf with light and dark themes. Choose a theme from **Appearance → Theme**. The operator shell keeps prepared content visually separate from the live output and provides a prominent **GO LIVE** action while retaining the `F5` shortcut.
+
+| Light | Dark |
+| --- | --- |
+| ![Light operator theme](docs/images/operator-light.png) | ![Dark operator theme](docs/images/operator-dark.png) |
 
 ## Project direction
 

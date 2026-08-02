@@ -2,9 +2,9 @@ name: Build
 
 on:
   pull_request:
-    branches: [dev]
+    branches: [master]
   push:
-    branches: [dev]
+    branches: [master]
 
 permissions:
   contents: read
@@ -37,7 +37,12 @@ jobs:
       - name: Install virtual display support
         run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends xvfb xdotool libxi6 libxrender1 libxtst6
 
-      - name: Smoke-test Swing startup
+      - name: Smoke-test light-theme startup
+        run: ./scripts/smoke-test.sh
+
+      - name: Smoke-test dark-theme startup
+        env:
+          JWORSHIP_THEME: dark
         run: ./scripts/smoke-test.sh
 
       - name: Build self-contained Linux application

@@ -28,15 +28,15 @@ Legacy multimedia, capture, video effects, and network song synchronization are 
 
 | Concern | Current implementation | Modernization implication |
 | --- | --- | --- |
-| UI | Java Swing with generated/hand-written layouts | Keep initially; decouple behavior from widgets |
-| Runtime | Java 6 source/target in Maven; a controlled probe compiled and smoke-launched on JDK 21 | Adopt Java 21 directly as the recovery baseline, then validate on real supported desktops |
-| Build | One old `pom.xml`, no wrapper or CI | Pin Maven/JDK and add CI first |
+| UI | Swing with FlatLaf light/dark themes and a prepared/live operator shell | Continue incremental panel and controller improvements without a framework rewrite |
+| Runtime | Java 21 | Validate on real supported desktops and projector configurations |
+| Build | Maven Wrapper and pull-request CI | Keep dependencies and workflow actions pinned and reviewed |
 | Core rendering | Java2D in `Screen`/`ScreenViewSwing` | Retain and characterize before visual changes |
 | Songs | `.txt` import plus Java-serialized `.sng` writes | Add a versioned UTF-8 format and safe migration |
 | Settings | Java serialization and editable language file | Introduce explicit schema/defaults later |
 | Dependencies | obsolete JMF, JOGL 1, DSJ, JGit, AppBundler | Remove the inactive DSJ/DirectShow cluster first; separate other out-of-scope dependencies incrementally |
-| Tests | none | Add a headless characterization suite |
-| Packaging | executable JAR plus old macOS bundle plugin; AppBundler fails on JDK 17/21 after JAR creation | Decouple packaging from compile/test and replace AppBundler separately |
+| Tests | parser, theme/component, source-startup, and packaged-startup checks | Expand characterization around storage, rendering, and presentation state |
+| Packaging | self-contained `jpackage` archives for Linux, Windows, and macOS | Add signing/notarization and upgrade validation when credentials are available |
 | License/governance | no root license or contribution policy | Confirm ownership and choose a license before redistribution |
 
 ## Verified recovery evidence
@@ -71,7 +71,7 @@ Work:
 Exit criteria:
 
 - `./mvnw verify` succeeds from a clean checkout;
-- CI runs the same command on every pull request to `dev`;
+- CI runs the same command on every pull request to `master`;
 - an automated smoke check launches the operator UI, followed by a manual launch/projector check on each supported OS;
 - no unverified binary is introduced to make the build green.
 
@@ -171,7 +171,7 @@ Prioritize verified operator needs:
 - accessible font scaling and keyboard-only operation;
 - a built-in rehearsal/test mode that does not require a second display.
 
-Avoid a framework rewrite as the first UX task. Evaluate JavaFX or another UI only after the core is separated and measurable limitations of Swing are documented.
+FlatLaf is the selected visual foundation for the existing Swing UI. Modernize panels and extract testable controllers incrementally; evaluate a different toolkit only after the core is separated and measurable limitations of Swing are documented.
 
 ## Phase 6 — optional capabilities
 

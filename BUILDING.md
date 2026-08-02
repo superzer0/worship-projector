@@ -56,10 +56,10 @@ The script creates a temporary user-data directory and verifies that the Swing o
 
 ## Publishing a release
 
-The release workflow accepts tags in `vX.Y.Z` format only. The tagged commit must be part of `dev`. For example:
+The release workflow accepts tags in `vX.Y.Z` format only. The tagged commit must be part of `master`. For example:
 
 ```bash
-git switch dev
+git switch master
 git pull --ff-only
 git tag -a v1.0.0 -m "jWorship 1.0.0"
 git push origin v1.0.0
@@ -75,3 +75,7 @@ Every release reruns the tests, extracts and starts each platform-specific downl
 Each archive has a matching `.sha256` checksum. Users do not need to install Java. After extraction, launch `jWorship/bin/jWorship` on Linux, `jWorship/jWorship.exe` on Windows, or `jWorship.app` on macOS.
 
 The applications are not yet code-signed. Windows SmartScreen or macOS Gatekeeper may therefore ask the user to confirm the first launch. Signing and notarization require platform signing credentials and remain a separate release-hardening step.
+
+## UI themes
+
+Choose the light or dark operator theme from **Appearance → Theme**. For screenshot or diagnostic runs, set the startup override `-Djworship.theme=light` or `-Djworship.theme=dark`. The preference selected in the application is saved with the existing general settings.

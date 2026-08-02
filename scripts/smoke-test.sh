@@ -11,6 +11,15 @@ if [ ! -d target/classes ] || [ ! -d target/dependency ]; then
     exit 1
 fi
 
+theme=${JWORSHIP_THEME:-light}
+case "$theme" in
+    light|dark) ;;
+    *)
+        echo "JWORSHIP_THEME must be light or dark" >&2
+        exit 2
+        ;;
+esac
+
 home_dir=$(mktemp -d)
 trap 'rm -rf "$home_dir"' EXIT INT TERM
 
@@ -22,13 +31,14 @@ cp target/classes/sk/calvary/misc/lang.lng "$app_dir/settings/lang.lng"
 set +e
 timeout 20s xvfb-run -a timeout 15s java \
     -Duser.home="$home_dir" \
+    -Djworship.theme="$theme" \
     -cp 'target/classes:target/dependency/*' \
     sk.calvary.worship.App -testmode >"$log_file" 2>&1
 status=$?
 set -e
 
 if [ "$status" -eq 124 ] && grep -Fqx 'JWORSHIP_UI_READY' "$log_file"; then
-    echo "Swing smoke test passed: the operator UI became visible and remained alive for 15 seconds"
+    echo "Swing smoke test passed with the $theme theme: the operator UI became visible and remained alive for 15 seconds"
     exit 0
 fi
 

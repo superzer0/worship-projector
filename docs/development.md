@@ -2,7 +2,7 @@
 
 ## Baseline
 
-The `dev` branch is the only development baseline covered by this guide. At the time this documentation was written, the project had:
+The historical `dev` baseline described below has now been recovered on `master`. The original project had:
 
 - one Maven module producing `worship-1.0-SNAPSHOT.jar`;
 - main class `sk.calvary.worship.App`;
@@ -12,17 +12,17 @@ The `dev` branch is the only development baseline covered by this guide. At the 
 - legacy JMF 2.1.1e, JOGL 1.1.1, DirectShow/DSJ, JGit 3.4, and macOS AppBundler references;
 - dependencies hosted partly in obsolete HTTP repositories.
 
-This means the historical `mvn install` command is a reference, not a reliable onboarding path. The first milestone in the [modernization plan](modernization-plan.md) establishes a pinned toolchain and a green CI build.
+These were historical constraints. The recovery milestone is complete on `master`: Java 21, the Maven Wrapper, automated tests, startup checks, and release packaging are now present.
 
 ## Getting the source
 
 ```bash
-git clone --branch dev https://github.com/superzer0/jWorship.git
-cd jWorship
+git clone --branch master https://github.com/superzer0/worship-projector.git
+cd worship-projector
 git switch -c <type>/<short-description>
 ```
 
-All development pull requests should target `dev`.
+All development pull requests should target `master`.
 
 ## Historical build and launch
 
@@ -39,7 +39,7 @@ If the manifest/classpath assembly fails, the historical fallback was:
 java -cp target/worship-1.0-SNAPSHOT.jar sk.calvary.worship.App
 ```
 
-These commands currently fail before compilation because the old dependencies are no longer reliably resolvable. A clean Docker verification with Maven 3.9.16 and Temurin JDK 8 failed while resolving `de.humatic.dsj:dsj:0.8.64` through the legacy `maven.java.net` repository (`PKIX` certificate validation failure). The same unresolved dependency blocks an unchanged build on JDK 17. Using an older or newer JDK alone therefore does not provide a reproducible build.
+These commands failed on the historical baseline because the old dependencies were no longer reliably resolvable. The controlled investigation reproduced a failure resolving `de.humatic.dsj:dsj:0.8.64`; the recovered build removes that inactive dependency cluster. Use the Maven Wrapper commands in [Building](../BUILDING.md) for current development.
 
 Do not solve that by downloading unverified JAR files. Inventory, license-check, hash, and document any binary that must temporarily be preserved.
 
