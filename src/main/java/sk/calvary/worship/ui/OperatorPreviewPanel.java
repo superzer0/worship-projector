@@ -113,7 +113,11 @@ public final class OperatorPreviewPanel extends JPanel {
                 new LineBorder(liveAccent, 2, true),
                 new EmptyBorder(GAP, GAP, GAP, GAP)
         ));
-        goLiveButton.setBackground(liveAccent);
+        Color liveAction = UIManager.getColor("jWorship.liveActionBackground");
+        if (liveAction == null) {
+            liveAction = new Color(0xDC2626);
+        }
+        goLiveButton.setBackground(liveAction);
         goLiveButton.setForeground(Color.WHITE);
     }
 

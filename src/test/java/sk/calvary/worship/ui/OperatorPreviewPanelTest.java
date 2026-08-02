@@ -36,6 +36,29 @@ class OperatorPreviewPanelTest {
         assertTrue(panel.getMinimumSize().width >= 300);
     }
 
+    @Test
+    void refreshesSemanticColorsWhenTheThemeChanges() throws Exception {
+        AtomicReference<OperatorPreviewPanel> panelRef = new AtomicReference<>();
+        SwingUtilities.invokeAndWait(() -> panelRef.set(new OperatorPreviewPanel(
+                new JPanel(),
+                new JPanel(),
+                new JButton("GO LIVE"),
+                "PREPARED",
+                "LIVE"
+        )));
+
+        OperatorPreviewPanel panel = panelRef.get();
+        JButton action = (JButton) findByName(panel, "goLiveButton");
+        assertEquals(new Color(0xDC2626), action.getBackground());
+
+        SwingUtilities.invokeAndWait(() -> {
+            UiTheme.install(UiTheme.DARK);
+            SwingUtilities.updateComponentTreeUI(panel);
+        });
+
+        assertEquals(new Color(0xB91C1C), action.getBackground());
+    }
+
     private static Component findByName(Container root, String name) {
         if (name.equals(root.getName()))
             return root;

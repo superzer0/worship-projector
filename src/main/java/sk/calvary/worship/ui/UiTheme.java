@@ -54,6 +54,8 @@ public enum UiTheme {
                 selected == DARK ? new Color(0x60A5FA) : new Color(0x2563EB));
         UIManager.put("jWorship.liveAccent",
                 selected == DARK ? new Color(0xF87171) : new Color(0xDC2626));
+        UIManager.put("jWorship.liveActionBackground",
+                selected == DARK ? new Color(0xB91C1C) : new Color(0xDC2626));
     }
 
     public static void installAndRefresh(UiTheme theme) {

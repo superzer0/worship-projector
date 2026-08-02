@@ -6,6 +6,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import javax.swing.*;
+import java.awt.Color;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -39,5 +40,14 @@ class UiThemeTest {
         UiTheme.install(UiTheme.DARK);
 
         assertInstanceOf(FlatDarkLaf.class, UIManager.getLookAndFeel());
+        assertEquals(new Color(0x60A5FA), UIManager.getColor("jWorship.preparedAccent"));
+    }
+
+    @Test
+    void darkThemeUsesAHighContrastLiveActionColor() {
+        UiTheme.install(UiTheme.DARK);
+
+        assertEquals(new Color(0xB91C1C),
+                UIManager.getColor("jWorship.liveActionBackground"));
     }
 }
