@@ -447,10 +447,6 @@ public class App extends JFrame implements ActionListener {
         panelsSelected.add(panels.elementAt(panels.size() - 1));
         panels.add(new BackPicPanel(this));
         panelsSelected.add(panels.elementAt(panels.size() - 1));
-        /*
-         * try { Class.forName("javax.media.Manager"); panels.add(new
-		 * MultimediaPanel(this)); } catch (ClassNotFoundException e1) { }
-		 */
         panels.add(new SettingsPanel(this));
         getPanelSelector().initialize();
     }
