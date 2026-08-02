@@ -96,13 +96,41 @@ jobs:
           RELEASE_VERSION: ${{ needs.validate.outputs.version }}
         run: .\scripts\package-app.ps1 -Version $env:RELEASE_VERSION -Architecture x64
 
+      - name: Install Linux smoke-test dependencies
+        if: matrix.platform == 'linux'
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends xvfb xdotool libxi6 libxrender1 libxtst6
+
+      - name: Smoke-test Linux release archive
+        if: matrix.platform == 'linux'
+        env:
+          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+          RELEASE_ARCH: ${{ matrix.arch }}
+        run: |
+          mkdir -p target/release-smoke-linux
+          tar -xzf "dist/jWorship-${RELEASE_VERSION}-linux-${RELEASE_ARCH}.tar.gz" -C target/release-smoke-linux
+          ./scripts/smoke-test-package.sh target/release-smoke-linux/jWorship/bin/jWorship
+
+      - name: Smoke-test macOS release archive
+        if: matrix.platform == 'macos'
+        env:
+          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+          RELEASE_ARCH: ${{ matrix.arch }}
+        run: ./scripts/smoke-test-package-macos.sh "dist/jWorship-${RELEASE_VERSION}-macos-${RELEASE_ARCH}.zip"
+
+      - name: Smoke-test Windows release archive
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+        run: .\scripts\smoke-test-package.ps1 -Archive "dist/jWorship-$env:RELEASE_VERSION-windows-x64.zip"
+
       - name: Upload packaged application
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-${{ matrix.platform }}-${{ matrix.arch }}
           path: dist/*
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 14
 
   publish:
     name: Publish GitHub release
@@ -125,6 +153,22 @@ jobs:
           for checksum in *.sha256; do
             sha256sum --check "$checksum"
           done
+
+      - name: Verify the remote tag still points to this build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          object_type=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$GITHUB_REF_NAME" --jq '.object.type')
+          object_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$GITHUB_REF_NAME" --jq '.object.sha')
+          while [[ "$object_type" == 'tag' ]]; do
+            tag_object=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$object_sha")
+            object_type=$(jq -r '.object.type' <<<"$tag_object")
+            object_sha=$(jq -r '.object.sha' <<<"$tag_object")
+          done
+          if [[ "$object_type" != 'commit' || "$object_sha" != "$GITHUB_SHA" ]]; then
+            echo "The remote tag no longer points to the commit that produced these artifacts" >&2
+            exit 1
+          fi
 
       - name: Create or update GitHub release
         env:
