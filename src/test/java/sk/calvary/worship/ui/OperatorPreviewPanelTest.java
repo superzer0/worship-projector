@@ -33,7 +33,7 @@ class OperatorPreviewPanelTest {
         Component action = findByName(panel, "goLiveButton");
         assertInstanceOf(JButton.class, action);
         assertTrue(action.getPreferredSize().height >= 44);
-        assertTrue(panel.getMinimumSize().width >= 300);
+        assertTrue(panel.getMinimumSize().width >= 260);
     }
 
     @Test
@@ -57,6 +57,39 @@ class OperatorPreviewPanelTest {
         });
 
         assertEquals(new Color(0xB91C1C), action.getBackground());
+    }
+
+    @Test
+    void keepsTheCriticalControlsVisibleInACompactPreviewColumn() throws Exception {
+        AtomicReference<OperatorPreviewPanel> panelRef = new AtomicReference<>();
+        SwingUtilities.invokeAndWait(() -> {
+            OperatorPreviewPanel panel = new OperatorPreviewPanel(
+                    new JPanel(),
+                    new JPanel(),
+                    new JButton("GO LIVE"),
+                    "PREPARED",
+                    "LIVE"
+            );
+            panel.setSize(300, 480);
+            layoutRecursively(panel);
+            panelRef.set(panel);
+        });
+
+        OperatorPreviewPanel panel = panelRef.get();
+        Component prepared = findByName(panel, "preparedPreview");
+        Component live = findByName(panel, "livePreview");
+        Component action = findByName(panel, "goLiveButton");
+        assertTrue(prepared.isVisible() && prepared.getHeight() >= 120);
+        assertTrue(live.isVisible() && live.getHeight() >= 120);
+        assertTrue(action.isVisible() && action.getHeight() >= 44);
+    }
+
+    private static void layoutRecursively(Container container) {
+        container.doLayout();
+        for (Component child : container.getComponents()) {
+            if (child instanceof Container nested)
+                layoutRecursively(nested);
+        }
     }
 
     private static Component findByName(Container root, String name) {

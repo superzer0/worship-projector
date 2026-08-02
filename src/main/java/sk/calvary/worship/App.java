@@ -14,6 +14,7 @@ import sk.calvary.worship.panels.SettingsPanel;
 import sk.calvary.worship.panels.SongsPanel;
 import sk.calvary.worship.ui.OperatorPreviewPanel;
 import sk.calvary.worship.ui.UiTheme;
+import sk.calvary.worship.ui.WindowSizing;
 
 import javax.swing.*;
 import java.awt.*;
@@ -115,7 +116,8 @@ public class App extends JFrame implements ActionListener {
         String requestedTheme = System.getProperty(
                 "jworship.theme", generalSettings.get(SETTING_THEME));
         currentTheme = UiTheme.fromSetting(requestedTheme);
-        UiTheme.installWithFallback(currentTheme);
+        if (!UiTheme.installWithFallback(currentTheme))
+            currentTheme = null;
         loadLangs();
 
         actionGo = new MyAction(ls(1000), null, KeyStroke.getKeyStroke("F5")) {
@@ -245,7 +247,11 @@ public class App extends JFrame implements ActionListener {
                         : lsOrDefault(1057, theme.getDisplayName());
                 JRadioButtonMenuItem item = new JRadioButtonMenuItem(label);
                 item.setSelected(theme == currentTheme);
-                item.addActionListener(event -> setCurrentTheme(theme));
+                item.putClientProperty("jWorship.theme", theme);
+                item.addActionListener(event -> {
+                    setCurrentTheme(theme);
+                    syncThemeSelection(group);
+                });
                 group.add(item);
                 themeMenu.add(item);
             }
@@ -255,12 +261,29 @@ public class App extends JFrame implements ActionListener {
     }
 
     private void setCurrentTheme(UiTheme theme) {
-        if (theme == currentTheme)
+        if (theme == null || theme == currentTheme)
             return;
+        UiTheme previousTheme = currentTheme;
+        if (!UiTheme.installAndRefresh(theme)) {
+            if (previousTheme != null)
+                UiTheme.installAndRefresh(previousTheme);
+            return;
+        }
         currentTheme = theme;
         generalSettings.put(SETTING_THEME, theme.getSettingValue());
-        UiTheme.installAndRefresh(theme);
         saveAll();
+    }
+
+    private void syncThemeSelection(ButtonGroup group) {
+        group.clearSelection();
+        java.util.Enumeration<AbstractButton> buttons = group.getElements();
+        while (buttons.hasMoreElements()) {
+            AbstractButton button = buttons.nextElement();
+            if (button.getClientProperty("jWorship.theme") == currentTheme) {
+                button.setSelected(true);
+                return;
+            }
+        }
     }
 
     /**
@@ -581,7 +604,7 @@ public class App extends JFrame implements ActionListener {
         if (jPanel1 == null) {
             jPanel1 = new JPanel();
             jPanel1.setLayout(new BorderLayout());
-            jPanel1.setMinimumSize(new Dimension(320, 650));
+            jPanel1.setMinimumSize(new Dimension(260, 360));
             jPanel1.add(getJPanel(), java.awt.BorderLayout.CENTER);
         }
         return jPanel1;
@@ -705,9 +728,13 @@ public class App extends JFrame implements ActionListener {
         this.setContentPane(getJContentPane());
         this.setJMenuBar(getJJMenuBar());
         this.setTitle("jWorship " + version);
-        this.setMinimumSize(new Dimension(1000, 650));
-        this.setSize(1200, 800);
-        this.setLocationRelativeTo(null);
+        Rectangle usableBounds = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+        this.setMinimumSize(WindowSizing.minimumSize(usableBounds));
+        this.setSize(WindowSizing.initialSize(usableBounds));
+        this.setLocation(
+                usableBounds.x + Math.max(0, (usableBounds.width - getWidth()) / 2),
+                usableBounds.y + Math.max(0, (usableBounds.height - getHeight()) / 2)
+        );
         setExtendedState(Frame.MAXIMIZED_BOTH);
 
         this.addWindowListener(new java.awt.event.WindowAdapter() {

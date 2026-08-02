@@ -83,9 +83,10 @@ public enum UiTheme {
                 selected == DARK ? new Color(0xB91C1C) : new Color(0xDC2626));
     }
 
-    public static void installAndRefresh(UiTheme theme) {
-        installWithFallback(theme);
+    public static boolean installAndRefresh(UiTheme theme) {
+        boolean installed = installWithFallback(theme);
         for (Window window : Window.getWindows())
             SwingUtilities.updateComponentTreeUI(window);
+        return installed;
     }
 }

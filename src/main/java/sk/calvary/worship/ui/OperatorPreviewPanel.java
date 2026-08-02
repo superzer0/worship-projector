@@ -30,7 +30,7 @@ public final class OperatorPreviewPanel extends JPanel {
         this.liveCard = createPreviewCard("livePreview", liveLabel, liveView);
 
         setBorder(new EmptyBorder(GAP, GAP, GAP, GAP));
-        setMinimumSize(new Dimension(320, 420));
+        setMinimumSize(new Dimension(260, 360));
         setPreferredSize(new Dimension(380, 680));
 
         configureGoLiveButton();

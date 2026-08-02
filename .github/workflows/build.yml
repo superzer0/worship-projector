@@ -37,12 +37,20 @@ jobs:
       - name: Install virtual display support
         run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends xvfb xdotool libxi6 libxrender1 libxtst6
 
+      - name: Verify displayable theme refresh
+        run: xvfb-run -a ./mvnw --batch-mode --no-transfer-progress -Dtest=UiThemeDisplayTest test
+
       - name: Smoke-test light-theme startup
         run: ./scripts/smoke-test.sh
 
       - name: Smoke-test dark-theme startup
         env:
           JWORSHIP_THEME: dark
+        run: ./scripts/smoke-test.sh
+
+      - name: Smoke-test HiDPI startup
+        env:
+          JAVA_TOOL_OPTIONS: -Dsun.java2d.uiScale=2
         run: ./scripts/smoke-test.sh
 
       - name: Build self-contained Linux application
