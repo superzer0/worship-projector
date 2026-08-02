@@ -3,6 +3,7 @@
 *.iml
 out/
 target/
+dist/
 
 #OSX specific
 .DS_Store

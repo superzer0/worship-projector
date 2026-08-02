@@ -34,7 +34,16 @@ jobs:
         run: ./mvnw --batch-mode --no-transfer-progress dependency:copy-dependencies -DincludeScope=runtime -DoutputDirectory=target/dependency
 
       - name: Install virtual display support
-        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends xvfb libxi6 libxrender1 libxtst6
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends xvfb xdotool libxi6 libxrender1 libxtst6
 
       - name: Smoke-test Swing startup
         run: ./scripts/smoke-test.sh
+
+      - name: Build self-contained Linux application
+        run: ./scripts/package-app.sh 0.0.0 linux x64
+
+      - name: Smoke-test the downloadable archive
+        run: |
+          mkdir -p target/package-smoke
+          tar -xzf dist/jWorship-0.0.0-linux-x64.tar.gz -C target/package-smoke
+          ./scripts/smoke-test-package.sh target/package-smoke/jWorship/bin/jWorship
