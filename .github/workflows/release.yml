@@ -16,6 +16,7 @@ jobs:
   validate:
     name: Validate release tag
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
@@ -59,6 +60,7 @@ jobs:
             platform: macos
             arch: arm64
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     steps:
       - name: Check out the tagged revision
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -106,6 +108,7 @@ jobs:
     name: Publish GitHub release
     needs: [validate, package]
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:
