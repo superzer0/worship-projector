@@ -56,16 +56,9 @@ The script creates a temporary user-data directory and verifies that the Swing o
 
 ## Publishing a release
 
-The release workflow accepts tags in `vX.Y.Z` format only. The tagged commit must be part of `master`. For example:
+Every update to `master` automatically starts the release workflow. After all platform packages and checksums pass validation, the workflow creates a `v0.1.N` tag for that exact commit and publishes the corresponding GitHub release. `N` is the stable GitHub Actions run number, so rerunning a failed workflow reuses the same tag instead of creating another version.
 
-```bash
-git switch master
-git pull --ff-only
-git tag -a v1.0.0 -m "jWorship 1.0.0"
-git push origin v1.0.0
-```
-
-Every release reruns the tests, extracts and starts each platform-specific download before publication, and publishes these self-contained downloads on the repository's GitHub Releases page:
+Every release reruns the tests, extracts and starts each platform-specific download before creating the tag, and publishes these self-contained downloads on the repository's GitHub Releases page:
 
 - Linux x64: `jWorship-X.Y.Z-linux-x64.tar.gz`
 - Windows x64: `jWorship-X.Y.Z-windows-x64.zip`
