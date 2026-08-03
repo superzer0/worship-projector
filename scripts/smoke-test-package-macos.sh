@@ -44,7 +44,7 @@ if [[ ! -f "$packaged_jar" ]]; then
 fi
 unzip -p "$packaged_jar" sk/calvary/misc/lang.lng >"$app_data/settings/lang.lng"
 
-JAVA_TOOL_OPTIONS="-Duser.home=$user_home -Djworship.test.readyFile=$ready_file" \
+JAVA_TOOL_OPTIONS="-Duser.home=$user_home" JWORSHIP_TEST_READY_FILE="$ready_file" \
     "$launcher" -testmode >"$log_file" 2>&1 &
 app_pid=$!
 

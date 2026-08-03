@@ -45,7 +45,9 @@ finally {
 }
 
 $previousJavaToolOptions = $env:JAVA_TOOL_OPTIONS
-$env:JAVA_TOOL_OPTIONS = "-Duser.home=$userHome -Djworship.test.readyFile=$readyFile"
+$previousReadyFile = $env:JWORSHIP_TEST_READY_FILE
+$env:JAVA_TOOL_OPTIONS = "-Duser.home=$userHome"
+$env:JWORSHIP_TEST_READY_FILE = $readyFile
 $process = $null
 try {
     $process = Start-Process -FilePath $launcher -ArgumentList '-testmode' -PassThru
@@ -82,4 +84,5 @@ finally {
         $process.WaitForExit()
     }
     $env:JAVA_TOOL_OPTIONS = $previousJavaToolOptions
+    $env:JWORSHIP_TEST_READY_FILE = $previousReadyFile
 }
