@@ -14,6 +14,10 @@ if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "Version must use X.Y.Z format: $version" >&2
     exit 2
 fi
+if (( 10#${version%%.*} < 1 )); then
+    echo "Version major component must be positive for cross-platform packaging: $version" >&2
+    exit 2
+fi
 
 case "$platform" in
     linux|macos) ;;
