@@ -6,6 +6,8 @@
  */
 package sk.calvary.worship;
 
+import sk.calvary.worship.persistence.AtomicFiles;
+
 import java.io.*;
 
 public class SafeFileOutputStream extends OutputStream {
@@ -29,9 +31,35 @@ public class SafeFileOutputStream extends OutputStream {
 
     public static Object safeLoad(File f, Object defaultValue)
             throws IOException, ClassNotFoundException {
-        if (!f.exists())
-            return defaultValue;
-        ObjectInputStream s = new PatchedObjectInputStream(new FileInputStream(f));
+        File backup = AtomicFiles.backupPath(f.toPath()).toFile();
+        if (!f.exists()) {
+            if (!backup.isFile())
+                return defaultValue;
+            Object recovered = readSerialized(backup);
+            AtomicFiles.restore(f.toPath(), backup.toPath());
+            return recovered;
+        }
+        try {
+            return readSerialized(f);
+        } catch (IOException | ClassNotFoundException primaryFailure) {
+            if (!backup.isFile())
+                throw primaryFailure;
+            Object recovered;
+            try {
+                recovered = readSerialized(backup);
+            } catch (IOException | ClassNotFoundException backupFailure) {
+                primaryFailure.addSuppressed(backupFailure);
+                throw primaryFailure;
+            }
+            AtomicFiles.restore(f.toPath(), backup.toPath());
+            return recovered;
+        }
+    }
+
+    private static Object readSerialized(File file)
+            throws IOException, ClassNotFoundException {
+        LegacyObjectInputFilter.checkStreamSize(file);
+        ObjectInputStream s = new PatchedObjectInputStream(new FileInputStream(file));
         try {
             return s.readObject();
         } finally {
@@ -54,9 +82,7 @@ public class SafeFileOutputStream extends OutputStream {
         if (closed)
             return;
         try {
-            FileOutputStream fos = new FileOutputStream(file);
-            fos.write(buffer.toByteArray());
-            fos.close();
+            AtomicFiles.write(file.toPath(), output -> buffer.writeTo(output));
         } finally {
             closed = true;
         }

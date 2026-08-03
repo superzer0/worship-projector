@@ -19,6 +19,7 @@ final class PatchedObjectInputStream extends
 
     PatchedObjectInputStream(InputStream in) throws IOException {
         super(in);
+        setObjectInputFilter(LegacyObjectInputFilter.INSTANCE);
     }
 
     @Override
