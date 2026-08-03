@@ -157,13 +157,17 @@ jobs:
           RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
           RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
         run: |
-          existing_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" --jq '.object.sha' 2>/dev/null || true)
-          if [[ -z "$existing_sha" ]]; then
+          if existing_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" --jq '.object.sha' 2>tag-error.log); then
+            if [[ "$existing_sha" != "$RELEASE_SHA" ]]; then
+              echo "Tag $RELEASE_TAG already points to a different commit" >&2
+              exit 1
+            fi
+          elif grep -q '(HTTP 404)' tag-error.log; then
             gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
               -f ref="refs/tags/$RELEASE_TAG" \
               -f sha="$RELEASE_SHA"
-          elif [[ "$existing_sha" != "$RELEASE_SHA" ]]; then
-            echo "Tag $RELEASE_TAG already points to a different commit" >&2
+          else
+            cat tag-error.log >&2
             exit 1
           fi
 
@@ -191,12 +195,20 @@ jobs:
           RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
           RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
         run: |
-          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>release-error.log; then
             gh release upload "$RELEASE_TAG" dist/* --clobber --repo "$GITHUB_REPOSITORY"
-          else
+            gh release edit "$RELEASE_TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --draft=false \
+              --prerelease=false \
+              --title "jWorship $RELEASE_VERSION"
+          elif grep -Fxq 'release not found' release-error.log; then
             gh release create "$RELEASE_TAG" dist/* \
               --repo "$GITHUB_REPOSITORY" \
               --verify-tag \
               --generate-notes \
               --title "jWorship $RELEASE_VERSION"
+          else
+            cat release-error.log >&2
+            exit 1
           fi
