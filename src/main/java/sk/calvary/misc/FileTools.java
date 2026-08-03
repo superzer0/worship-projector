@@ -62,17 +62,22 @@ public class FileTools {
     }
 
     public static File newFriendlyFile(File dir, String title, String extension) {
+        return newFriendlyFile(dir, title, extension, null);
+    }
+
+    public static File newFriendlyFile(File dir, String title, String extension,
+                                       File availableFile) {
         String name = friendlyFileName(title);
 
         File res;
 
         res = new File(dir, name + "." + extension);
-        if (!res.isFile())
+        if (!res.isFile() || res.equals(availableFile))
             return res;
 
         for (int i = 1; true; i++) {
             res = new File(dir, name + "_" + i + "." + extension);
-            if (!res.isFile())
+            if (!res.isFile() || res.equals(availableFile))
                 return res;
         }
     }

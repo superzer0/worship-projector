@@ -1,0 +1,7 @@
+// Custom language fixture with only historical keys
+#1000
+en[Legacy Go]
+sk[Legacy Choď]
+
+#9999
+en[Fallback label]

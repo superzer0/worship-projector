@@ -65,13 +65,13 @@ jWorship/
 └── settings/
 ```
 
-The settings directory contains serialized application state and a writable copy of `lang.lng`. Treat the whole directory as user data and back it up before testing persistence changes.
+The settings directory contains serialized application state and a writable copy of `lang.lng`. Settings and bookmark saves use atomic replacement and retain the previous valid file with a `.bak` suffix. Treat the whole directory as user data and back it up before testing persistence changes.
 
 ## Song formats
 
 `Song.load(File)` accepts two extensions:
 
-- `.txt` — plain text; the filename becomes the title and `@` separates verses while loading;
+- `.txt` — plain text; the filename becomes the title and `@` separates verses while loading. UTF-8 is preferred, with a Windows-1250 fallback for historical Slovak/Czech files;
 - `.sng` — Java `ObjectInputStream` serialization of `sk.calvary.worship.Song`.
 
 The editor's plain-text representation separates verses with a line containing `@` (internally `\n@`). New or edited songs are currently saved as `.sng` files with a filename derived from the lower-case title.
@@ -89,9 +89,11 @@ Chorus line 2
 Cautions:
 
 - `.sng` ties user data to the Java class and serial version;
-- loading Java serialization from an untrusted source is unsafe;
-- `FileReader` uses the platform default charset for `.txt` files;
+- legacy deserialization is restricted by an application-data class allowlist and resource limits, but untrusted files should still be treated cautiously;
+- edited songs are atomically installed and retain the previous version as `<song>.sng.bak` when the filename is unchanged;
 - format migration must retain an importer and create backups before rewriting files.
+
+See [Quality baseline](quality-baseline.md) for current test, coverage, dependency-analysis, and build-environment gates.
 
 ## Operator flow useful for manual testing
 

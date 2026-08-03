@@ -9,8 +9,14 @@ package sk.calvary.worship;
 import sk.calvary.misc.FileTools;
 import sk.calvary.misc.SearchInfo;
 import sk.calvary.misc.StringTools;
+import sk.calvary.worship.persistence.AtomicFiles;
 
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.text.AttributedString;
 import java.util.Vector;
 
@@ -51,23 +57,41 @@ public class Song implements Serializable, ObjectInputValidation {
     }
 
     private static Song loadSer(File f) throws IOException {
-        ObjectInputStream os = new PatchedObjectInputStream(new BufferedInputStream(
-                new FileInputStream(f)));
-        Song s;
         try {
-            s = (Song) os.readObject();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            throw new IOException(e.getMessage());
-        } finally {
-            os.close();
+            return readSerializedSong(f, f);
+        } catch (IOException primaryFailure) {
+            File backup = AtomicFiles.backupPath(f.toPath()).toFile();
+            if (!backup.isFile())
+                throw primaryFailure;
+            Song recovered;
+            try {
+                recovered = readSerializedSong(backup, f);
+            } catch (IOException backupFailure) {
+                primaryFailure.addSuppressed(backupFailure);
+                throw primaryFailure;
+            }
+            AtomicFiles.restore(f.toPath(), backup.toPath());
+            return recovered;
         }
-        s.file = f;
-        return s;
     }
 
-    private static Song loadTxt(File f) throws FileNotFoundException,
-            IOException {
+    private static Song readSerializedSong(File source, File logicalFile)
+            throws IOException {
+        try (ObjectInputStream input = new PatchedObjectInputStream(
+                new BufferedInputStream(new FileInputStream(source)))) {
+            Object value = input.readObject();
+            if (!(value instanceof Song song))
+                throw new InvalidObjectException(
+                        "Expected song data in " + source + " but found "
+                                + (value == null ? "null" : value.getClass().getName()));
+            song.file = logicalFile;
+            return song;
+        } catch (ClassNotFoundException e) {
+            throw new IOException("Unsupported class in song file " + source, e);
+        }
+    }
+
+    private static Song loadTxt(File f) throws IOException {
         Song s = new Song();
         s.file = f;
 
@@ -76,7 +100,7 @@ public class Song implements Serializable, ObjectInputValidation {
         if (j >= 0)
             n = n.substring(0, j);
         s.setTitle(n);
-        FileReader r = new FileReader(f);
+        Reader r = new StringReader(decodePlainText(f));
         try {
             StringBuffer sb = new StringBuffer();
             int i;
@@ -93,6 +117,20 @@ public class Song implements Serializable, ObjectInputValidation {
             r.close();
         }
         return s;
+    }
+
+    private static String decodePlainText(File file) throws IOException {
+        byte[] bytes = Files.readAllBytes(file.toPath());
+        try {
+            return StandardCharsets.UTF_8.newDecoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT)
+                    .decode(ByteBuffer.wrap(bytes))
+                    .toString();
+        } catch (CharacterCodingException ignored) {
+            return new String(bytes,
+                    java.nio.charset.Charset.forName("windows-1250"));
+        }
     }
 
     /**
@@ -207,15 +245,21 @@ public class Song implements Serializable, ObjectInputValidation {
      * @throws IOException
      */
     public void save(File dir) throws IOException {
-        if (file != null) {
-            file.delete();
-            file = null;
-        }
-        file = FileTools.newFriendlyFile(dir, title.toLowerCase(), "sng");
-        ObjectOutputStream os = new ObjectOutputStream(
-                new BufferedOutputStream(new FileOutputStream(file)));
-        os.writeObject(this);
-        os.close();
+        File previousFile = file;
+        File targetFile = FileTools.newFriendlyFile(
+                dir, title.toLowerCase(), "sng", previousFile);
+
+        AtomicFiles.write(targetFile.toPath(),
+                previousFile == null ? null : previousFile.toPath(), output -> {
+                    try (ObjectOutputStream objectOutput = new ObjectOutputStream(
+                            new BufferedOutputStream(output))) {
+                        objectOutput.writeObject(this);
+                    }
+                });
+
+        file = targetFile;
+        if (previousFile != null && !previousFile.equals(targetFile))
+            java.nio.file.Files.deleteIfExists(previousFile.toPath());
     }
 
     /**
