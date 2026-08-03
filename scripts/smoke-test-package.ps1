@@ -9,7 +9,8 @@ $archivePath = (Resolve-Path -LiteralPath $Archive).Path
 $smokeRoot = Join-Path $PWD 'target/release-smoke-windows'
 $extractRoot = Join-Path $smokeRoot 'extract'
 $userHome = Join-Path $smokeRoot 'home'
-$appData = Join-Path $userHome 'jWorship'
+$appDataRoot = Join-Path $smokeRoot 'appdata'
+$appData = Join-Path $appDataRoot 'jWorship'
 $readyFile = Join-Path $smokeRoot 'ui-ready.txt'
 
 Remove-Item $smokeRoot -Recurse -Force -ErrorAction SilentlyContinue
@@ -46,8 +47,10 @@ finally {
 
 $previousJavaToolOptions = $env:JAVA_TOOL_OPTIONS
 $previousReadyFile = $env:JWORSHIP_TEST_READY_FILE
+$previousAppData = $env:AppData
 $env:JAVA_TOOL_OPTIONS = "-Duser.home=$userHome"
 $env:JWORSHIP_TEST_READY_FILE = $readyFile
+$env:AppData = $appDataRoot
 $process = $null
 try {
     $process = Start-Process -FilePath $launcher -ArgumentList '-testmode' -PassThru
@@ -85,4 +88,5 @@ finally {
     }
     $env:JAVA_TOOL_OPTIONS = $previousJavaToolOptions
     $env:JWORSHIP_TEST_READY_FILE = $previousReadyFile
+    $env:AppData = $previousAppData
 }

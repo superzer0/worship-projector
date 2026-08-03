@@ -15,7 +15,7 @@ fi
 smoke_root=$(mktemp -d)
 extract_root="$smoke_root/extract"
 user_home="$smoke_root/home"
-app_data="$user_home/jWorship"
+app_data="$user_home/Library/Application Support/jWorship"
 log_file="$smoke_root/startup.log"
 ready_file="$smoke_root/ui-ready.txt"
 app_pid=''
