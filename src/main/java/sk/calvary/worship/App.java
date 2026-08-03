@@ -13,6 +13,7 @@ import sk.calvary.worship.panels.BackPicPanel;
 import sk.calvary.worship.panels.SettingsPanel;
 import sk.calvary.worship.panels.SongsPanel;
 import sk.calvary.worship.ui.OperatorPreviewPanel;
+import sk.calvary.worship.ui.StartupReadiness;
 import sk.calvary.worship.ui.UiTheme;
 import sk.calvary.worship.ui.WindowSizing;
 
@@ -209,7 +210,7 @@ public class App extends JFrame implements ActionListener {
                 App app = new App();
                 app.setVisible(true);
                 if (testMode)
-                    System.out.println("JWORSHIP_UI_READY");
+                    StartupReadiness.signal();
 
             }
         });

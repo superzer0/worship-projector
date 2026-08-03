@@ -17,6 +17,7 @@ extract_root="$smoke_root/extract"
 user_home="$smoke_root/home"
 app_data="$user_home/jWorship"
 log_file="$smoke_root/startup.log"
+ready_file="$smoke_root/ui-ready.txt"
 app_pid=''
 cleanup() {
     if [[ -n "$app_pid" ]]; then
@@ -43,12 +44,13 @@ if [[ ! -f "$packaged_jar" ]]; then
 fi
 unzip -p "$packaged_jar" sk/calvary/misc/lang.lng >"$app_data/settings/lang.lng"
 
-JAVA_TOOL_OPTIONS="-Duser.home=$user_home" "$launcher" -testmode >"$log_file" 2>&1 &
+JAVA_TOOL_OPTIONS="-Duser.home=$user_home -Djworship.test.readyFile=$ready_file" \
+    "$launcher" -testmode >"$log_file" 2>&1 &
 app_pid=$!
 
 ready=false
 for _ in {1..30}; do
-    if grep -Fqx 'JWORSHIP_UI_READY' "$log_file"; then
+    if grep -Fqx 'JWORSHIP_UI_READY' "$ready_file" 2>/dev/null; then
         ready=true
         break
     fi

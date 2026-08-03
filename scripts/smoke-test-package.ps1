@@ -10,6 +10,7 @@ $smokeRoot = Join-Path $PWD 'target/release-smoke-windows'
 $extractRoot = Join-Path $smokeRoot 'extract'
 $userHome = Join-Path $smokeRoot 'home'
 $appData = Join-Path $userHome 'jWorship'
+$readyFile = Join-Path $smokeRoot 'ui-ready.txt'
 
 Remove-Item $smokeRoot -Recurse -Force -ErrorAction SilentlyContinue
 New-Item $extractRoot -ItemType Directory -Force | Out-Null
@@ -44,7 +45,7 @@ finally {
 }
 
 $previousJavaToolOptions = $env:JAVA_TOOL_OPTIONS
-$env:JAVA_TOOL_OPTIONS = "-Duser.home=$userHome"
+$env:JAVA_TOOL_OPTIONS = "-Duser.home=$userHome -Djworship.test.readyFile=$readyFile"
 $process = $null
 try {
     $process = Start-Process -FilePath $launcher -ArgumentList '-testmode' -PassThru
@@ -55,13 +56,14 @@ try {
         if ($process.HasExited) {
             throw "Packaged application exited before its window appeared (exit $($process.ExitCode))"
         }
-        if ($process.MainWindowHandle -ne 0 -and $process.MainWindowTitle -like 'jWorship *') {
+        if ((Test-Path -LiteralPath $readyFile -PathType Leaf) -and
+            ((Get-Content -LiteralPath $readyFile -Raw) -eq 'JWORSHIP_UI_READY')) {
             $ready = $true
             break
         }
     }
     if (-not $ready) {
-        throw 'Packaged application did not expose a visible jWorship window within 30 seconds'
+        throw 'Packaged application did not report a visible jWorship window within 30 seconds'
     }
 
     for ($attempt = 0; $attempt -lt 15; $attempt++) {
