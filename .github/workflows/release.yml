@@ -2,47 +2,46 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [master]
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-master
   cancel-in-progress: false
 
 jobs:
-  validate:
-    name: Validate release tag
+  prepare:
+    name: Prepare release
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
       version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      sha: ${{ steps.version.outputs.sha }}
     steps:
-      - name: Check out the tagged revision
+      - name: Check out the master revision
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
-      - name: Validate tag and source branch
+      - name: Derive the release version
         id: version
         shell: bash
         run: |
-          if [[ ! "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Release tags must use vX.Y.Z format" >&2
+          if [[ "$GITHUB_REF_NAME" != 'master' ]]; then
+            echo "Automatic releases must run from master" >&2
             exit 1
           fi
-          git fetch --no-tags origin master
-          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/master; then
-            echo "Release tags must point to a commit on master" >&2
-            exit 1
-          fi
-          echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          version="0.1.${GITHUB_RUN_NUMBER}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          echo "sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
 
   package:
     name: Package ${{ matrix.platform }}-${{ matrix.arch }}
-    needs: validate
+    needs: prepare
     strategy:
       fail-fast: false
       matrix:
@@ -62,8 +61,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     steps:
-      - name: Check out the tagged revision
+      - name: Check out the release revision
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.sha }}
 
       - name: Set up Java 21
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
@@ -84,7 +85,7 @@ jobs:
       - name: Create Linux or macOS application image
         if: runner.os != 'Windows'
         env:
-          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
           RELEASE_PLATFORM: ${{ matrix.platform }}
           RELEASE_ARCH: ${{ matrix.arch }}
         run: ./scripts/package-app.sh "$RELEASE_VERSION" "$RELEASE_PLATFORM" "$RELEASE_ARCH"
@@ -93,7 +94,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         env:
-          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
         run: .\scripts\package-app.ps1 -Version $env:RELEASE_VERSION -Architecture x64
 
       - name: Install Linux smoke-test dependencies
@@ -103,7 +104,7 @@ jobs:
       - name: Smoke-test Linux release archive
         if: matrix.platform == 'linux'
         env:
-          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
           RELEASE_ARCH: ${{ matrix.arch }}
         run: |
           mkdir -p target/release-smoke-linux
@@ -113,7 +114,7 @@ jobs:
       - name: Smoke-test macOS release archive
         if: matrix.platform == 'macos'
         env:
-          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
           RELEASE_ARCH: ${{ matrix.arch }}
         run: ./scripts/smoke-test-package-macos.sh "dist/jWorship-${RELEASE_VERSION}-macos-${RELEASE_ARCH}.zip"
 
@@ -121,7 +122,7 @@ jobs:
         if: matrix.platform == 'windows'
         shell: pwsh
         env:
-          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
         run: .\scripts\smoke-test-package.ps1 -Archive "dist/jWorship-$env:RELEASE_VERSION-windows-x64.zip"
 
       - name: Upload packaged application
@@ -134,7 +135,7 @@ jobs:
 
   publish:
     name: Publish GitHub release
-    needs: [validate, package]
+    needs: [prepare, package]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -154,18 +155,36 @@ jobs:
             sha256sum --check "$checksum"
           done
 
+      - name: Create or verify release tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+          RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
+        run: |
+          existing_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" --jq '.object.sha' 2>/dev/null || true)
+          if [[ -z "$existing_sha" ]]; then
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" \
+              -f ref="refs/tags/$RELEASE_TAG" \
+              -f sha="$RELEASE_SHA"
+          elif [[ "$existing_sha" != "$RELEASE_SHA" ]]; then
+            echo "Tag $RELEASE_TAG already points to a different commit" >&2
+            exit 1
+          fi
+
       - name: Verify the remote tag still points to this build
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
+          RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
         run: |
-          object_type=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$GITHUB_REF_NAME" --jq '.object.type')
-          object_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$GITHUB_REF_NAME" --jq '.object.sha')
+          object_type=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" --jq '.object.type')
+          object_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" --jq '.object.sha')
           while [[ "$object_type" == 'tag' ]]; do
             tag_object=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$object_sha")
             object_type=$(jq -r '.object.type' <<<"$tag_object")
             object_sha=$(jq -r '.object.sha' <<<"$tag_object")
           done
-          if [[ "$object_type" != 'commit' || "$object_sha" != "$GITHUB_SHA" ]]; then
+          if [[ "$object_type" != 'commit' || "$object_sha" != "$RELEASE_SHA" ]]; then
             echo "The remote tag no longer points to the commit that produced these artifacts" >&2
             exit 1
           fi
@@ -173,12 +192,13 @@ jobs:
       - name: Create or update GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_VERSION: ${{ needs.validate.outputs.version }}
+          RELEASE_VERSION: ${{ needs.prepare.outputs.version }}
+          RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
         run: |
-          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" dist/* --clobber --repo "$GITHUB_REPOSITORY"
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" dist/* --clobber --repo "$GITHUB_REPOSITORY"
           else
-            gh release create "$GITHUB_REF_NAME" dist/* \
+            gh release create "$RELEASE_TAG" dist/* \
               --repo "$GITHUB_REPOSITORY" \
               --verify-tag \
               --generate-notes \
