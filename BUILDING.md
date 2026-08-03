@@ -56,7 +56,7 @@ The script creates a temporary user-data directory and verifies that the Swing o
 
 ## Publishing a release
 
-Every update to `master` automatically starts the release workflow. After all platform packages and checksums pass validation, the workflow creates a `v1.0.N` tag for that exact commit and publishes the corresponding GitHub release. `N` is the stable GitHub Actions run number, so rerunning a failed workflow reuses the same tag instead of creating another version. The positive major version is required by macOS `jpackage` and is shared by every platform artifact.
+Every update to `master` automatically starts the release workflow. After all platform packages and checksums pass validation, the workflow creates a `v1.0.N` tag for that exact commit and publishes the corresponding GitHub release. `N` is the stable GitHub Actions run number, so rerunning a failed workflow reuses the same tag instead of creating another version. The positive major version is required by macOS `jpackage` and is shared by every platform artifact. Verification of a newly created tag retries transient GitHub API `404` responses before checking that the tag still points to the build commit.
 
 Every release reruns the tests, extracts and starts each platform-specific download before creating the tag, and publishes these self-contained downloads on the repository's GitHub Releases page:
 
