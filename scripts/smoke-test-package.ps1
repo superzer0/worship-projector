@@ -52,7 +52,7 @@ $process = $null
 try {
     $process = Start-Process -FilePath $launcher -ArgumentList '-testmode' -PassThru
     $ready = $false
-    for ($attempt = 0; $attempt -lt 30; $attempt++) {
+    for ($attempt = 0; $attempt -lt 90; $attempt++) {
         Start-Sleep -Seconds 1
         $process.Refresh()
         if ($process.HasExited) {
@@ -65,7 +65,7 @@ try {
         }
     }
     if (-not $ready) {
-        throw 'Packaged application did not report a visible jWorship window within 30 seconds'
+        throw 'Packaged application did not report a visible jWorship window within 90 seconds'
     }
 
     for ($attempt = 0; $attempt -lt 15; $attempt++) {

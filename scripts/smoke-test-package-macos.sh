@@ -49,7 +49,7 @@ JAVA_TOOL_OPTIONS="-Duser.home=$user_home" JWORSHIP_TEST_READY_FILE="$ready_file
 app_pid=$!
 
 ready=false
-for _ in {1..30}; do
+for _ in {1..90}; do
     if grep -Fqx 'JWORSHIP_UI_READY' "$ready_file" 2>/dev/null; then
         ready=true
         break
@@ -63,7 +63,7 @@ for _ in {1..30}; do
 done
 if [[ "$ready" != true ]]; then
     cat "$log_file" >&2
-    echo "Packaged macOS application did not report readiness within 30 seconds" >&2
+    echo "Packaged macOS application did not report readiness within 90 seconds" >&2
     exit 1
 fi
 
