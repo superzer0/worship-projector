@@ -1,6 +1,10 @@
 package sk.calvary.worship;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.ObjectInputFilter;
+import java.io.StreamCorruptedException;
+import java.nio.file.Files;
 import java.util.Set;
 
 final class LegacyObjectInputFilter implements ObjectInputFilter {
@@ -41,6 +45,13 @@ final class LegacyObjectInputFilter implements ObjectInputFilter {
     );
 
     private LegacyObjectInputFilter() {
+    }
+
+    static void checkStreamSize(File file) throws IOException {
+        long size = Files.size(file.toPath());
+        if (size > MAX_BYTES)
+            throw new StreamCorruptedException(
+                    "Serialized input exceeds " + MAX_BYTES + " bytes: " + file);
     }
 
     @Override

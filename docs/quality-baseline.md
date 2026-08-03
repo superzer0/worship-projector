@@ -9,8 +9,8 @@ The first measured baseline was recorded on `master` commit `0b94c56` before per
 
 After adding compatibility, atomic persistence, and deserialization tests in this branch, the measured baseline is:
 
-- 30 JUnit tests, with the display-dependent test skipped in a headless run and executed separately under Xvfb;
-- JaCoCo: 7.1% lines, 5.7% branches, and 8.7% methods.
+- 33 JUnit tests, with the display-dependent test skipped in a headless run and executed separately under Xvfb;
+- JaCoCo: 7.3% lines, 5.9% branches, and 8.8% methods.
 
 `mvn verify` now:
 

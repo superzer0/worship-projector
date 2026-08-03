@@ -42,6 +42,17 @@ class SafeFileOutputStreamTest {
     }
 
     @Test
+    void safeLoadRecoversAValidBackupWhenThePrimaryIsMissing() throws Exception {
+        File target = tempDir.resolve("generalSettings.ser").toFile();
+        SafeFileOutputStream.safeSave(target, settings("light"));
+        SafeFileOutputStream.safeSave(target, settings("dark"));
+        Files.delete(target.toPath());
+
+        assertEquals("light", loadTheme(target));
+        assertTrue(target.isFile());
+    }
+
+    @Test
     void missingFilesStillReturnTheSuppliedDefault() throws Exception {
         HashMap<Integer, String> defaults = settings("light");
 

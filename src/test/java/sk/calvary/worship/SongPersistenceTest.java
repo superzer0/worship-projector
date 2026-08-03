@@ -83,6 +83,23 @@ class SongPersistenceTest {
     }
 
     @Test
+    void failedOldNameCleanupDoesNotChangeTheSongReference() throws Exception {
+        Song song = song("Original title", "Original verse");
+        song.save(tempDir.toFile());
+        File originalFile = song.getFile();
+        Files.delete(originalFile.toPath());
+        Files.createDirectory(originalFile.toPath());
+        Files.writeString(originalFile.toPath().resolve("locked"), "keep directory non-empty");
+
+        song.setTitle("Renamed title");
+
+        assertThrows(IOException.class, () -> song.save(tempDir.toFile()));
+
+        assertSame(originalFile, song.getFile());
+        assertTrue(tempDir.resolve("renamed_title.sng").toFile().isFile());
+    }
+
+    @Test
     void failedRenameSaveLeavesThePreviousFileAndSongReferenceUntouched() throws Exception {
         Song song = song("Original title", "Original verse");
         song.save(tempDir.toFile());

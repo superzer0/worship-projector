@@ -77,6 +77,7 @@ public class Song implements Serializable, ObjectInputValidation {
 
     private static Song readSerializedSong(File source, File logicalFile)
             throws IOException {
+        LegacyObjectInputFilter.checkStreamSize(source);
         try (ObjectInputStream input = new PatchedObjectInputStream(
                 new BufferedInputStream(new FileInputStream(source)))) {
             Object value = input.readObject();
@@ -257,9 +258,9 @@ public class Song implements Serializable, ObjectInputValidation {
                     }
                 });
 
-        file = targetFile;
         if (previousFile != null && !previousFile.equals(targetFile))
             java.nio.file.Files.deleteIfExists(previousFile.toPath());
+        file = targetFile;
     }
 
     /**

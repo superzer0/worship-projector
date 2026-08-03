@@ -31,12 +31,17 @@ public class SafeFileOutputStream extends OutputStream {
 
     public static Object safeLoad(File f, Object defaultValue)
             throws IOException, ClassNotFoundException {
-        if (!f.exists())
-            return defaultValue;
+        File backup = AtomicFiles.backupPath(f.toPath()).toFile();
+        if (!f.exists()) {
+            if (!backup.isFile())
+                return defaultValue;
+            Object recovered = readSerialized(backup);
+            AtomicFiles.restore(f.toPath(), backup.toPath());
+            return recovered;
+        }
         try {
             return readSerialized(f);
         } catch (IOException | ClassNotFoundException primaryFailure) {
-            File backup = AtomicFiles.backupPath(f.toPath()).toFile();
             if (!backup.isFile())
                 throw primaryFailure;
             Object recovered;
@@ -53,6 +58,7 @@ public class SafeFileOutputStream extends OutputStream {
 
     private static Object readSerialized(File file)
             throws IOException, ClassNotFoundException {
+        LegacyObjectInputFilter.checkStreamSize(file);
         ObjectInputStream s = new PatchedObjectInputStream(new FileInputStream(file));
         try {
             return s.readObject();
