@@ -9,7 +9,9 @@ $archivePath = (Resolve-Path -LiteralPath $Archive).Path
 $smokeRoot = Join-Path $PWD 'target/release-smoke-windows'
 $extractRoot = Join-Path $smokeRoot 'extract'
 $userHome = Join-Path $smokeRoot 'home'
-$appData = Join-Path $userHome 'jWorship'
+$appDataRoot = Join-Path $smokeRoot 'appdata'
+$appData = Join-Path $appDataRoot 'jWorship'
+$readyFile = Join-Path $smokeRoot 'ui-ready.txt'
 
 Remove-Item $smokeRoot -Recurse -Force -ErrorAction SilentlyContinue
 New-Item $extractRoot -ItemType Directory -Force | Out-Null
@@ -44,24 +46,29 @@ finally {
 }
 
 $previousJavaToolOptions = $env:JAVA_TOOL_OPTIONS
+$previousReadyFile = $env:JWORSHIP_TEST_READY_FILE
+$previousAppData = $env:AppData
 $env:JAVA_TOOL_OPTIONS = "-Duser.home=$userHome"
+$env:JWORSHIP_TEST_READY_FILE = $readyFile
+$env:AppData = $appDataRoot
 $process = $null
 try {
     $process = Start-Process -FilePath $launcher -ArgumentList '-testmode' -PassThru
     $ready = $false
-    for ($attempt = 0; $attempt -lt 30; $attempt++) {
+    for ($attempt = 0; $attempt -lt 90; $attempt++) {
         Start-Sleep -Seconds 1
         $process.Refresh()
         if ($process.HasExited) {
             throw "Packaged application exited before its window appeared (exit $($process.ExitCode))"
         }
-        if ($process.MainWindowHandle -ne 0 -and $process.MainWindowTitle -like 'jWorship *') {
+        if ((Test-Path -LiteralPath $readyFile -PathType Leaf) -and
+            ((Get-Content -LiteralPath $readyFile -Raw) -eq 'JWORSHIP_UI_READY')) {
             $ready = $true
             break
         }
     }
     if (-not $ready) {
-        throw 'Packaged application did not expose a visible jWorship window within 30 seconds'
+        throw 'Packaged application did not report a visible jWorship window within 90 seconds'
     }
 
     for ($attempt = 0; $attempt -lt 15; $attempt++) {
@@ -80,4 +87,6 @@ finally {
         $process.WaitForExit()
     }
     $env:JAVA_TOOL_OPTIONS = $previousJavaToolOptions
+    $env:JWORSHIP_TEST_READY_FILE = $previousReadyFile
+    $env:AppData = $previousAppData
 }

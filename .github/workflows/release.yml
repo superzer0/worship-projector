@@ -3,6 +3,8 @@ name: Release
 on:
   push:
     branches: [master]
+  pull_request:
+    branches: [master]
 
 permissions:
   contents: read
@@ -26,14 +28,16 @@ jobs:
         id: version
         shell: bash
         run: |
-          if [[ "$GITHUB_REF_NAME" != 'master' ]]; then
+          if [[ "$GITHUB_EVENT_NAME" == 'push' && "$GITHUB_REF_NAME" != 'master' ]]; then
             echo "Automatic releases must run from master" >&2
             exit 1
           fi
-          version="0.1.${GITHUB_RUN_NUMBER}"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "tag=v$version" >> "$GITHUB_OUTPUT"
-          echo "sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          version=$(./scripts/release-version.sh "$GITHUB_RUN_NUMBER")
+          {
+            echo "version=$version"
+            echo "tag=v$version"
+            echo "sha=$GITHUB_SHA"
+          } >> "$GITHUB_OUTPUT"
 
   package:
     name: Package ${{ matrix.platform }}-${{ matrix.arch }}
@@ -131,6 +135,7 @@ jobs:
 
   publish:
     name: Publish GitHub release
+    if: github.event_name == 'push'
     needs: [prepare, package]
     runs-on: ubuntu-24.04
     timeout-minutes: 10

@@ -77,10 +77,8 @@ public class Song implements Serializable, ObjectInputValidation {
 
     private static Song readSerializedSong(File source, File logicalFile)
             throws IOException {
-        LegacyObjectInputFilter.checkStreamSize(source);
-        try (ObjectInputStream input = new PatchedObjectInputStream(
-                new BufferedInputStream(new FileInputStream(source)))) {
-            Object value = input.readObject();
+        try {
+            Object value = LegacyObjectStreams.read(source);
             if (!(value instanceof Song song))
                 throw new InvalidObjectException(
                         "Expected song data in " + source + " but found "

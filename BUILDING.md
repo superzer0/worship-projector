@@ -20,7 +20,7 @@ On Windows Command Prompt or PowerShell, use:
 .\mvnw.cmd verify
 ```
 
-This is the primary command used by pull-request continuous integration. CI also starts the Swing UI on a virtual display, builds the self-contained Linux application, extracts the resulting archive, and starts that packaged application.
+This is the primary command used by pull-request continuous integration. CI also starts the Swing UI on a virtual display, builds the self-contained Linux application, extracts the resulting archive, and starts that packaged application. The release workflow additionally builds and smoke-tests the Windows x64, macOS Intel, and macOS Apple silicon archives on every pull request without creating a tag or release.
 
 ## Run from the build tree
 
@@ -56,7 +56,7 @@ The script creates a temporary user-data directory and verifies that the Swing o
 
 ## Publishing a release
 
-Every update to `master` automatically starts the release workflow. After all platform packages and checksums pass validation, the workflow creates a `v0.1.N` tag for that exact commit and publishes the corresponding GitHub release. `N` is the stable GitHub Actions run number, so rerunning a failed workflow reuses the same tag instead of creating another version.
+Every update to `master` automatically starts the release workflow. After all platform packages and checksums pass validation, the workflow creates a `v1.0.N` tag for that exact commit and publishes the corresponding GitHub release. `N` is the stable GitHub Actions run number, so rerunning a failed workflow reuses the same tag instead of creating another version. The positive major version is required by macOS `jpackage` and is shared by every platform artifact.
 
 Every release reruns the tests, extracts and starts each platform-specific download before creating the tag, and publishes these self-contained downloads on the repository's GitHub Releases page:
 

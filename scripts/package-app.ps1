@@ -9,6 +9,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+if ([int64]($Version.Split('.')[0]) -lt 1) {
+    throw "Version major component must be positive for cross-platform packaging: $Version"
+}
+
 if (-not (Get-Command jpackage -ErrorAction SilentlyContinue)) {
     throw 'jpackage from JDK 21 is required'
 }

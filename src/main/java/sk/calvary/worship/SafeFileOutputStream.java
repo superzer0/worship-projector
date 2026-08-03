@@ -58,13 +58,7 @@ public class SafeFileOutputStream extends OutputStream {
 
     private static Object readSerialized(File file)
             throws IOException, ClassNotFoundException {
-        LegacyObjectInputFilter.checkStreamSize(file);
-        ObjectInputStream s = new PatchedObjectInputStream(new FileInputStream(file));
-        try {
-            return s.readObject();
-        } finally {
-            s.close();
-        }
+        return LegacyObjectStreams.read(file);
     }
 
     @Override
